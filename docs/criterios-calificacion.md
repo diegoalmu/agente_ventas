@@ -73,7 +73,7 @@ necesita más volumen, escalar es trivial.
   procesos manuales evidentes (ej. "escríbenos por WhatsApp para cotizar"),
   menciones de iniciativas de transformación digital.
 
-## Rúbrica de calificación (0-100, calificar si el total ≥ 60)
+## Rúbrica de calificación (0-100, calificar si el total ≥ 75)
 
 | Criterio | Peso máximo | Cómo se evalúa |
 |---|---|---|

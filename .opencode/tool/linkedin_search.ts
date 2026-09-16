@@ -44,6 +44,7 @@ dotenv.config({ path: path.join(RUTA_RAIZ_PROYECTO, ".env") })
 // Rutas fijas del proyecto (relativas a la raíz detectada arriba).
 const RUTA_ICP = path.join(RUTA_RAIZ_PROYECTO, "config", "icp.json")
 const RUTA_VISTOS = path.join(RUTA_RAIZ_PROYECTO, "data", "vistos.json")
+const RUTA_ROTACION = path.join(RUTA_RAIZ_PROYECTO, "data", "rotacion.json")
 const CARPETA_DATA = path.join(RUTA_RAIZ_PROYECTO, "data")
 
 // Lee el archivo de perfiles ya vistos en semanas anteriores (para no
@@ -58,8 +59,39 @@ function guardarVistos(vistos: Set<string>) {
   fs.writeFileSync(RUTA_VISTOS, JSON.stringify([...vistos], null, 2))
 }
 
-// Construye las combinaciones puesto + industria + región a partir de
-// config/icp.json, respetando el límite de consultas diarias.
+// Estado de rotación: de qué combinación (índice) arrancará la siguiente
+// corrida. Si el archivo no existe todavía (primera vez), empieza en 0.
+function cargarIndiceInicio(): number {
+  if (!fs.existsSync(RUTA_ROTACION)) return 0
+  const contenido = JSON.parse(fs.readFileSync(RUTA_ROTACION, "utf-8"))
+  const indice = Number(contenido?.indice_siguiente ?? 0)
+  return Number.isFinite(indice) && indice >= 0 ? Math.floor(indice) : 0
+}
+
+// Guarda el punto donde quedó la última corrida para que la siguiente
+// continúe a partir de ahí (rotación entre semanas).
+function guardarRotacion(
+  ultimoIndice: number,
+  indiceSiguiente: number,
+  totalCombinaciones: number
+) {
+  fs.writeFileSync(
+    RUTA_ROTACION,
+    JSON.stringify(
+      {
+        ultimo_indice_utilizado: ultimoIndice,
+        indice_siguiente: indiceSiguiente,
+        total_combinaciones: totalCombinaciones,
+      },
+      null,
+      2
+    )
+  )
+}
+
+// Construye TODAS las combinaciones puesto + industria + región a partir de
+// config/icp.json. No recorta aquí: el bloque rotativo (siguiente grupo de N
+// combinaciones) se elige en execute() leyendo data/rotacion.json.
 function construirConsultas(icp: any): string[] {
   const consultas: string[] = []
   const puestosTexto = icp.puestos.map((p: string) => `"${p}"`).join(" OR ")
@@ -72,8 +104,7 @@ function construirConsultas(icp: any): string[] {
     }
   }
 
-  // Recorta al máximo diario configurado (evita gastar de más el saldo de Serper).
-  return consultas.slice(0, icp.consultas_maximas_por_dia)
+  return consultas
 }
 
 // Llama a la API de Serper.dev para una sola consulta.
@@ -107,7 +138,7 @@ async function buscarEnSerper(consulta: string): Promise<any[]> {
 
 export default tool({
   description:
-    "Busca perfiles públicos de LinkedIn indexados por Google (vía Serper.dev, nunca navega LinkedIn directamente) usando los puestos, industrias y regiones definidos en config/icp.json. Deduplica contra candidatos de semanas anteriores y guarda el resultado crudo en data/.",
+    "Busca perfiles públicos de LinkedIn indexados por Google (vía Serper.dev, nunca navega LinkedIn directamente) usando los puestos, industrias y regiones definidos en config/icp.json. Rota el bloque de consultas de una corrida a otra (data/rotacion.json) para ir cubriendo todas las combinaciones y no repetir siempre las primeras. Deduplica contra candidatos de semanas anteriores y guarda el resultado crudo en data/.",
   args: {
     etiqueta_semana: tool.schema
       .string()
@@ -119,10 +150,37 @@ export default tool({
     const icp = JSON.parse(fs.readFileSync(RUTA_ICP, "utf-8"))
     const vistos = cargarVistos()
     const consultas = construirConsultas(icp)
+    const limite = Math.max(
+      0,
+      Math.min(Number(icp.consultas_maximas_por_dia) || 0, consultas.length)
+    )
+
+    if (consultas.length === 0) {
+      return "No hay combinaciones en config/icp.json (la lista de industrias o regiones está vacía)."
+    }
+
+    // Asegura que la carpeta data/ exista antes de escribir cualquier archivo.
+    if (!fs.existsSync(CARPETA_DATA)) fs.mkdirSync(CARPETA_DATA)
+
+    // Rotación entre semanas: cada corrida toma el siguiente bloque de N
+    // combinaciones a partir del índice guardado, dando la vuelta al inicio
+    // de la lista si se llega al final (módulo). Así se cubren todas las
+    // combinaciones de config/icp.json en pocas corridas y no siempre las
+    // mismas 30 primeras.
+    const indiceInicio = cargarIndiceInicio()
+    const seleccion: string[] = []
+    for (let i = 0; i < limite; i++) {
+      seleccion.push(consultas[(indiceInicio + i) % consultas.length])
+    }
+    const ultimoIndice =
+      limite > 0 ? (indiceInicio + limite - 1) % consultas.length : 0
+    const indiceSiguiente = (indiceInicio + limite) % consultas.length
+
+    guardarRotacion(ultimoIndice, indiceSiguiente, consultas.length)
 
     const candidatosNuevos: any[] = []
 
-    for (const consulta of consultas) {
+    for (const consulta of seleccion) {
       const resultados = await buscarEnSerper(consulta)
 
       for (const item of resultados) {
@@ -141,13 +199,12 @@ export default tool({
 
     guardarVistos(vistos)
 
-    if (!fs.existsSync(CARPETA_DATA)) fs.mkdirSync(CARPETA_DATA)
     const archivoSalida = path.join(
       CARPETA_DATA,
       `candidatos-${args.etiqueta_semana}.json`
     )
     fs.writeFileSync(archivoSalida, JSON.stringify(candidatosNuevos, null, 2))
 
-    return `Se ejecutaron ${consultas.length} consultas y se encontraron ${candidatosNuevos.length} candidatos nuevos (no vistos antes). Guardados en ${archivoSalida}.`
+    return `Se ejecutaron ${seleccion.length} consultas (bloque desde combinación ${indiceInicio}) y se encontraron ${candidatosNuevos.length} candidatos nuevos (no vistos antes). Guardados en ${archivoSalida}.`
   },
 })

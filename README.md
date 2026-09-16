@@ -29,8 +29,12 @@ flowchart TD
 |-|-|-|
 |1. Sourcing|✅ Construido en este commit|Busca candidatos vía Google Custom Search, restringido a `linkedin.com/in`, y deduplica contra semanas anteriores|
 |2. Enriquecimiento/Calificación|⏳ Pendiente|Investiga cada candidato y aplica la rúbrica de `docs/criterios-calificacion.md`|
-|3. Reporte semanal|⏳ Pendiente|Genera el Excel/Sheets con los prospectos calificados|
+|3. Reporte semanal|✅ Construido|Orquestador de todo el pipeline: corre Sourcing, Calificación y Mensajes en orden y genera el Excel con los prospectos calificados (comando `/reporte-semanal`)|
 |4. Redacción de mensajes|⏳ Pendiente|Redacta un mensaje personalizado por prospecto calificado|
+
+El orquestador **Reporte semanal** se dispara con `/reporte-semanal [YYYY-Www]` o en lenguaje
+natural ("dame el reporte semanal") y corre toda la semana de una sola vez. Ver
+`docs/reporte-semanal.md` para el detalle completo.
 
 Ver `docs/criterios-calificacion.md` para el ICP, la rúbrica de calificación y
 los números de alcance semanal.
