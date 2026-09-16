@@ -1,0 +1,34 @@
+{
+  "puestos": [
+    "CEO",
+    "Founder",
+    "Co-Founder",
+    "COO",
+    "CTO",
+    "Director de Operaciones",
+    "Director Digital",
+    "Head of E-commerce",
+    "Director de Sistemas"
+  ],
+  "industrias": [
+    "retail",
+    "e-commerce",
+    "manufactura",
+    "logistica",
+    "salud privada",
+    "educacion privada",
+    "bienes raices",
+    "servicios financieros"
+  ],
+  "regiones": [
+    "Mexico",
+    "United States",
+    "Canada",
+    "United Kingdom",
+    "Spain",
+    "Australia",
+    "Germany"
+  ],
+  "consultas_maximas_por_dia": 30,
+  "notas": "Editar estas listas no requiere tocar el código del tool. Cada combinación puesto+industria+region genera una consulta de búsqueda."
+}
