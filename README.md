@@ -1,9 +1,6 @@
 # Prospección TurboEmpresa
 
-Agente multi-etapa construido en [OpenCode](https://opencode.ai) para
-encontrar, calificar y preparar mensajes personalizados para prospectos de
-alto perfil (capacidad de inversión ~$21,000 USD) para
-[TurboEmpresa](https://turboempresa.com/). **No envía mensajes de forma
+Agente multi-etapa construido en [OpenCode](https://opencode.ai) para encontrar, calificar y preparar mensajes personalizados para prospectos de alto perfil (capacidad de inversión de $3,400 a $19,500 USD según el nivel de servicio) para TurboEmpresa(https://turboempresa.com/). **No envía mensajes de forma
 automática** — solo entrega un reporte semanal con contactos calificados y un
 borrador de mensaje por cada uno, para que el envío lo haga una persona.
 
@@ -21,28 +18,28 @@ automatizando un navegador contra esas plataformas.
 
 ```mermaid
 flowchart TD
-    A[Subagente 1: Sourcing] -->|candidatos crudos| B[Subagente 2: Enriquecimiento y Calificación]
-    B -->|prospectos calificados| C[Subagente 3: Reporte semanal]
-    B -->|prospectos calificados| D[Subagente 4: Redacción de mensajes]
+    A\[Subagente 1: Sourcing] -->|candidatos crudos| B\[Subagente 2: Enriquecimiento y Calificación]
+    B -->|prospectos calificados| C\[Subagente 3: Reporte semanal]
+    B -->|prospectos calificados| D\[Subagente 4: Redacción de mensajes]
     D --> C
-    C -->|Excel/Sheets semanal| E[Persona: revisa y envía manualmente]
+    C -->|Excel/Sheets semanal| E\[Persona: revisa y envía manualmente]
 ```
 
-| Subagente | Estado | Función |
-|---|---|---|
-| 1. Sourcing | ✅ Construido en este commit | Busca candidatos vía Google Custom Search, restringido a `linkedin.com/in`, y deduplica contra semanas anteriores |
-| 2. Enriquecimiento/Calificación | ⏳ Pendiente | Investiga cada candidato y aplica la rúbrica de `docs/criterios-calificacion.md` |
-| 3. Reporte semanal | ⏳ Pendiente | Genera el Excel/Sheets con los prospectos calificados |
-| 4. Redacción de mensajes | ⏳ Pendiente | Redacta un mensaje personalizado por prospecto calificado |
+|Subagente|Estado|Función|
+|-|-|-|
+|1. Sourcing|✅ Construido en este commit|Busca candidatos vía Google Custom Search, restringido a `linkedin.com/in`, y deduplica contra semanas anteriores|
+|2. Enriquecimiento/Calificación|⏳ Pendiente|Investiga cada candidato y aplica la rúbrica de `docs/criterios-calificacion.md`|
+|3. Reporte semanal|⏳ Pendiente|Genera el Excel/Sheets con los prospectos calificados|
+|4. Redacción de mensajes|⏳ Pendiente|Redacta un mensaje personalizado por prospecto calificado|
 
 Ver `docs/criterios-calificacion.md` para el ICP, la rúbrica de calificación y
 los números de alcance semanal.
 
 ## Requisitos
 
-- OpenCode instalado (Desktop o CLI)
-- Node.js (para el custom tool y el script de búsqueda)
-- Una API key de [Serper.dev](https://serper.dev)
+* OpenCode instalado (Desktop o CLI)
+* Node.js (para el custom tool y el script de búsqueda)
+* Una API key de [Serper.dev](https://serper.dev)
 
 ## Paso 1 — Crear tu cuenta y API key en Serper.dev
 
@@ -56,7 +53,7 @@ Ve a [serper.dev](https://serper.dev) y regístrate (incluye 2,500 consultas gra
 cp .env.example .env
 ```
 
-Edita `.env` y llena `SERPER_API_KEY` con el valor del paso 1.
+Edita `.env` y llena `SERPER\_API\_KEY` con el valor del paso 1.
 
 ## Paso 3 — Instalar dependencias del tool
 
@@ -86,6 +83,7 @@ README.md                          → este archivo
 docs/criterios-calificacion.md     → ICP, rúbrica de calificación, alcance semanal
 config/icp.json                    → puestos, industrias y regiones objetivo (editable sin tocar código)
 .opencode/agent/sourcing.md        → definición del Subagente 1
-.opencode/tool/linkedin_search.ts  → herramienta que consulta Google Custom Search
+.opencode/tool/linkedin\_search.ts  → herramienta que consulta Google Custom Search
 data/                               → candidatos recolectados por semana (no se sube a git)
 ```
+
