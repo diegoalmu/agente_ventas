@@ -8,8 +8,8 @@ PostgreSQL en Supabase + Azure). El dolor central que resuelve es reemplazar
 hojas de Excel/procesos manuales por un sistema con roles, cálculos protegidos
 y auditoría.
 
-**Rango de inversión real** (calibrado con la cotización real XXX-0000-000,
-tipo de cambio $17 MXN/USD):
+**Rango de inversión real** (calibrado con una cotización real interna,
+tipo de cambio de referencia MXN/USD):
 
 | Nivel | Qué es | MXN c/IVA | USD aprox. |
 |---|---|---|---|
